@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Manager - Simple UI</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Auth Section */
+        .auth-section {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .auth-form {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .auth-card {
+            flex: 1;
+            padding: 20px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+        }
+
+        .auth-card h3 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-top: 10px;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background: #5a67d8;
+        }
+
+        .logout-btn {
+            background: #e53e3e;
+        }
+
+        .logout-btn:hover {
+            background: #c53030;
+        }
+
+        /* Task Section */
+        .task-section {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .user-info {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .badge {
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .badge-admin {
+            background: #e53e3e;
+            color: white;
+        }
+
+        .badge-user {
+            background: #48bb78;
+            color: white;
+        }
+
+        .add-task-form {
+            background: #f7fafc;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .add-task-form input, .add-task-form textarea {
+            margin: 10px 0;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            resize: vertical;
+        }
+
+        .task-list {
+            display: grid;
+            gap: 15px;
+        }
+
+        .task-card {
+            background: #f7fafc;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            transition: transform 0.2s;
+        }
+
+        .task-card:hover {
+            transform: translateX(5px);
+        }
+
+        .task-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .task-description {
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .task-meta {
+            display: flex;
+            gap: 15px;
+            font-size: 12px;
+            color: #999;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+
+        .task-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .complete-btn {
+            background: #48bb78;
+        }
+
+        .edit-btn {
+            background: #ed8936;
+        }
+
+        .delete-btn {
+            background: #e53e3e;
+        }
+
+        .small-btn {
+            padding: 5px 10px;
+            font-size: 12px;
+        }
+
+        .completed {
+            opacity: 0.7;
+            border-left-color: #48bb78;
+        }
+
+        .completed .task-title {
+            text-decoration: line-through;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+
+        .error {
+            background: #fed7d7;
+            color: #c53030;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+
+        .success {
+            background: #c6f6d5;
+            color: #22543d;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .auth-form {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Auth Section -->
+        <div id="authSection" class="auth-section">
+            <div class="auth-form">
+                <div class="auth-card">
+                    <h3>🔐 Login</h3>
+                    <input type="text" id="loginUsername" placeholder="Username" value="admin">
+                    <input type="password" id="loginPassword" placeholder="Password" value="Admin123!">
+                    <button onclick="login()">Login</button>
+                </div>
+                <div class="auth-card">
+                    <h3>📝 Register</h3>
+                    <input type="text" id="regUsername" placeholder="Username">
+                    <input type="email" id="regEmail" placeholder="Email">
+                    <input type="password" id="regPassword" placeholder="Password">
+                    <button onclick="register()">Register</button>
+                </div>
+            </div>
+            <div id="authMessage"></div>
+        </div>
+
+        <!-- Task Section (Hidden until logged in) -->
+        <div id="taskSection" class="task-section hidden">
+            <div class="header">
+                <h2>📋 My Tasks</h2>
+                <div class="user-info">
+                    <span>Welcome, <strong id="userName"></strong></span>
+                    <span id="userRole" class="badge"></span>
+                    <button class="logout-btn" onclick="logout()">Logout</button>
+                </div>
+            </div>
+
+            <div id="taskMessage"></div>
+
+            <div class="add-task-form">
+                <h3>➕ Add New Task</h3>
+                <input type="text" id="taskTitle" placeholder="Task Title">
+                <textarea id="taskDescription" rows="3" placeholder="Task Description"></textarea>
+                <input type="datetime-local" id="taskDueDate">
+                <button onclick="createTask()">Create Task</button>
+            </div>
+
+            <div id="taskList" class="task-list">
+                <div class="loading">Loading tasks...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:5003/api';
+        let authToken = localStorage.getItem('token');
+        let currentUser = null;
+
+        // Check if user is logged in on page load
+        if (authToken) {
+            loadUserInfo();
+            showTaskSection();
+            loadTasks();
+        }
+
+        async function register() {
+            const username = document.getElementById('regUsername').value;
+            const email = document.getElementById('regEmail').value;
+            const password = document.getElementById('regPassword').value;
+
+            if (!username || !email || !password) {
+                showMessage('authMessage', 'Please fill all fields', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, email, password })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    showMessage('authMessage', 'Registration successful! Please login.', 'success');
+                    document.getElementById('regUsername').value = '';
+                    document.getElementById('regEmail').value = '';
+                    document.getElementById('regPassword').value = '';
+                } else {
+                    const error = await response.json();
+                    showMessage('authMessage', error.message || 'Registration failed', 'error');
+                }
+            } catch (error) {
+                showMessage('authMessage', 'Error connecting to server', 'error');
+            }
+        }
+
+        async function login() {
+            const username = document.getElementById('loginUsername').value;
+            const password = document.getElementById('loginPassword').value;
+
+            if (!username || !password) {
+                showMessage('authMessage', 'Please fill all fields', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    authToken = data.token;
+                    currentUser = data;
+                    localStorage.setItem('token', authToken);
+                    localStorage.setItem('user', JSON.stringify(data));
+                    showMessage('authMessage', 'Login successful!', 'success');
+                    loadUserInfo();
+                    showTaskSection();
+                    loadTasks();
+                } else {
+                    const error = await response.json();
+                    showMessage('authMessage', error.message || 'Invalid credentials', 'error');
+                }
+            } catch (error) {
+                showMessage('authMessage', 'Error connecting to server', 'error');
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            authToken = null;
+            currentUser = null;
+            document.getElementById('authSection').classList.remove('hidden');
+            document.getElementById('taskSection').classList.add('hidden');
+            document.getElementById('loginUsername').value = 'admin';
+            document.getElementById('loginPassword').value = 'Admin123!';
+            showMessage('authMessage', 'Logged out successfully', 'success');
+        }
+
+        function loadUserInfo() {
+            const user = JSON.parse(localStorage.getItem('user'));
+            if (user) {
+                currentUser = user;
+                document.getElementById('userName').textContent = user.username;
+                const roleBadge = document.getElementById('userRole');
+                roleBadge.textContent = user.role;
+                roleBadge.className = `badge ${user.role === 'Admin' ? 'badge-admin' : 'badge-user'}`;
+            }
+        }
+
+        function showTaskSection() {
+            document.getElementById('authSection').classList.add('hidden');
+            document.getElementById('taskSection').classList.remove('hidden');
+        }
+
+        async function loadTasks() {
+            const taskList = document.getElementById('taskList');
+            taskList.innerHTML = '<div class="loading">Loading tasks...</div>';
+
+            try {
+                const response = await fetch(`${API_URL}/tasks`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                if (response.ok) {
+                    const tasks = await response.json();
+                    displayTasks(tasks);
+                } else if (response.status === 401) {
+                    logout();
+                } else {
+                    taskList.innerHTML = '<div class="error">Failed to load tasks</div>';
+                }
+            } catch (error) {
+                taskList.innerHTML = '<div class="error">Error connecting to server</div>';
+            }
+        }
+
+        function displayTasks(tasks) {
+            const taskList = document.getElementById('taskList');
+            
+            if (tasks.length === 0) {
+                taskList.innerHTML = '<div class="loading">No tasks yet. Create your first task!</div>';
+                return;
+            }
+
+            taskList.innerHTML = tasks.map(task => `
+                <div class="task-card ${task.isCompleted ? 'completed' : ''}">
+                    <div class="task-title">${escapeHtml(task.title)}</div>
+                    <div class="task-description">${escapeHtml(task.description || 'No description')}</div>
+                    <div class="task-meta">
+                        <span>📅 Created: ${new Date(task.createdAt).toLocaleDateString()}</span>
+                        ${task.dueDate ? `<span>⏰ Due: ${new Date(task.dueDate).toLocaleDateString()}</span>` : ''}
+                        <span>${task.isCompleted ? '✅ Completed' : '🟡 Pending'}</span>
+                    </div>
+                    <div class="task-actions">
+                        <button class="small-btn complete-btn" onclick="toggleComplete(${task.id})">
+                            ${task.isCompleted ? '↺ Undo' : '✓ Complete'}
+                        </button>
+                        <button class="small-btn edit-btn" onclick="editTask(${task.id})">✎ Edit</button>
+                        <button class="small-btn delete-btn" onclick="deleteTask(${task.id})">🗑 Delete</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function createTask() {
+            const title = document.getElementById('taskTitle').value;
+            const description = document.getElementById('taskDescription').value;
+            const dueDate = document.getElementById('taskDueDate').value;
+
+            if (!title) {
+                showMessage('taskMessage', 'Please enter a task title', 'error');
+                return;
+            }
+
+            const task = {
+                title: title,
+                description: description,
+                dueDate: dueDate ? new Date(dueDate).toISOString() : null
+            };
+
+            try {
+                const response = await fetch(`${API_URL}/tasks`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify(task)
+                });
+
+                if (response.ok) {
+                    showMessage('taskMessage', 'Task created successfully!', 'success');
+                    document.getElementById('taskTitle').value = '';
+                    document.getElementById('taskDescription').value = '';
+                    document.getElementById('taskDueDate').value = '';
+                    loadTasks();
+                } else {
+                    showMessage('taskMessage', 'Failed to create task', 'error');
+                }
+            } catch (error) {
+                showMessage('taskMessage', 'Error creating task', 'error');
+            }
+        }
+
+        async function toggleComplete(id) {
+            try {
+                const response = await fetch(`${API_URL}/tasks/${id}/complete`, {
+                    method: 'PATCH',
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                if (response.ok) {
+                    loadTasks();
+                } else {
+                    showMessage('taskMessage', 'Failed to update task', 'error');
+                }
+            } catch (error) {
+                showMessage('taskMessage', 'Error updating task', 'error');
+            }
+        }
+
+        async function editTask(id) {
+            const newTitle = prompt('Enter new title:');
+            if (!newTitle) return;
+            
+            const newDescription = prompt('Enter new description:');
+            
+            try {
+                const response = await fetch(`${API_URL}/tasks/${id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({
+                        title: newTitle,
+                        description: newDescription,
+                        isCompleted: false
+                    })
+                });
+
+                if (response.ok) {
+                    showMessage('taskMessage', 'Task updated successfully!', 'success');
+                    loadTasks();
+                } else {
+                    showMessage('taskMessage', 'Failed to update task', 'error');
+                }
+            } catch (error) {
+                showMessage('taskMessage', 'Error updating task', 'error');
+            }
+        }
+
+        async function deleteTask(id) {
+            if (!confirm('Are you sure you want to delete this task?')) return;
+
+            try {
+                const response = await fetch(`${API_URL}/tasks/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                if (response.ok) {
+                    showMessage('taskMessage', 'Task deleted successfully!', 'success');
+                    loadTasks();
+                } else {
+                    showMessage('taskMessage', 'Failed to delete task', 'error');
+                }
+            } catch (error) {
+                showMessage('taskMessage', 'Error deleting task', 'error');
+            }
+        }
+
+        function showMessage(elementId, message, type) {
+            const element = document.getElementById(elementId);
+            element.innerHTML = `<div class="${type}">${message}</div>`;
+            setTimeout(() => {
+                element.innerHTML = '';
+            }, 3000);
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>
