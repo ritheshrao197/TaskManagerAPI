@@ -1,4 +1,4 @@
-# 📚 Task Manager API - Complete Learning Guide & README
+# Task Manager API - Complete Learning Guide & README
 
 # Task Manager API
 
